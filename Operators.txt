@@ -1,0 +1,61 @@
+GitHub Actions: Operators
+In GitHub Actions, operators are used within ${{ }} expressions to perform comparisons, logical checks, and string manipulations.
+
+1. Comparison Operators
+| Operator | Description           | Example                                  |
+| -------- | --------------------- | ---------------------------------------- |
+| `==`     | Equal to              | `${{ github.ref == 'refs/heads/main' }}` |
+| `!=`     | Not equal to          | `${{ github.actor != 'bot' }}`           |
+| `>`      | Greater than          | `${{ 3 > 2 }}`                           |
+| `<`      | Less than             | `${{ 1 < 2 }}`                           |
+| `>=`     | Greater than or equal | `${{ 5 >= 5 }}`                          |
+| `<=`     | Less than or equal    | `${{ 4 <= 5 }}`                          |
+
+2. Logical Operators
+| Operator | Description | Example                                               |            |                                |   |                              |
+| -------- | ----------- | ----------------------------------------------------- | ---------- | ------------------------------ | - | ---------------------------- |
+| `&&`     | Logical AND | `${{ success() && github.ref == 'refs/heads/main' }}` |            |                                |   |                              |
+| \`       |             | \`                                                    | Logical OR | \`\${{ github.actor == 'user1' |   | github.actor == 'user2' }}\` |
+| `!`      | Logical NOT | `${{ !cancelled() }}`                                 |            |                                |   |                              |
+
+3. String Operators / Functions
+GitHub Actions does not support + or += for string concatenation directly, but you can use string functions:
+| Function                  | Description                             | Example                                                |
+| ------------------------- | --------------------------------------- | ------------------------------------------------------ |
+| `startsWith(str, prefix)` | Checks if a string starts with a prefix | `${{ startsWith(github.ref, 'refs/heads/feature/') }}` |
+| `endsWith(str, suffix)`   | Checks if a string ends with a suffix   | `${{ endsWith(github.ref, '-beta') }}`                 |
+| `contains(str, substr)`   | Checks if a string contains a substring | `${{ contains(github.actor, 'bot') }}`                 |
+| `format()`                | Format a string with placeholders       | `${{ format('Hello {0}', github.actor) }}`             |
+| `join()`                  | Join an array into a string             | `${{ join(matrix.os, ', ') }}`                         |
+
+4. Null/Empty Checks
+| Expression               | Meaning                     |
+| ------------------------ | --------------------------- |
+| `${{ someVar == null }}` | Check if a variable is null |
+| `${{ someVar != '' }}`   | Check if not empty string   |
+
+Example Expressions Using Operators
+if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+if: contains(github.event.head_commit.message, '[skip ci]')
+if: github.actor != 'dependabot[bot]'
+
+Unsupported Operators
+GitHub Actions expressions do not support:
+Arithmetic (+, -, *, /)
+Direct array indexing (use matrix or custom inputs instead)
+
+Best Practices:
+| Tip                                               | Why                                                   |                      |                                                 |
+| ------------------------------------------------- | ----------------------------------------------------- | -------------------- | ----------------------------------------------- |
+| Use `==` and `!=` for branch or actor comparisons | Clear control over workflow conditions                |                      |                                                 |
+| Combine `&&` and \`                               |                                                       | \` for complex logic | Enables conditional workflow/job/step execution |
+| Use `contains()`, `startsWith()` wisely           | Helpful for filtering branches, tags, commit messages |                      |                                                 |
+| Avoid unnecessary logic in `run:` — move to `if:` | Keeps YAML clean and efficient                        |                      |                                                 |
+
+Summary Table:
+| Category   | Operators/Functions                                              |   |         |
+| ---------- | ---------------------------------------------------------------- | - | ------- |
+| Comparison | `==`, `!=`, `>`, `<`, `>=`, `<=`                                 |   |         |
+| Logical    | `&&`, \`                                                         |   | `, `!\` |
+| String     | `contains()`, `startsWith()`, `endsWith()`, `format()`, `join()` |   |         |
+| Null/Empty | `== null`, `!= ''`                                               |   |         |

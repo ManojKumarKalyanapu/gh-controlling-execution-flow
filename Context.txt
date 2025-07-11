@@ -1,0 +1,99 @@
+What Are Contexts in GitHub Actions?
+Contexts are data objects that give you access to metadata, variables, and state during a workflow run.
+
+They’re commonly used in:
+if: conditions
+env: and run: steps
+with: inputs
+Workflow expressions like ${{ github.ref }}
+
+Main Context Objects in GitHub Actions
+| Context                                   | Description                                                        |
+| ----------------------------------------- | ------------------------------------------------------------------ |
+| `github`                                  | Contains metadata about the workflow run, event, repo, actor, etc. |
+| `env`                                     | Contains environment variables defined in the workflow or runner.  |
+| `jobs`                                    | References outputs from other jobs.                                |
+| `steps`                                   | Accesses outputs from previous steps within the same job.          |
+| `runner`                                  | Info about the runner (OS, name, arch).                            |
+| `secrets`                                 | Access to repository/organization secrets.                         |
+| `strategy`                                | Used in matrix jobs to access matrix values.                       |
+| `matrix`                                  | Current value of the matrix configuration.                         |
+| `needs`                                   | Gets outputs from jobs this job depends on.                        |
+| `inputs`                                  | Inputs defined in `workflow_dispatch`.                             |
+| `vars`                                    | Repository-level custom variables.                                 |
+| `job`                                     | Metadata about the current job.                                    |
+| `steps`                                   | Outputs of previously named steps.                                 |
+| `failure()` / `success()` / `cancelled()` | Built-in status functions.                                         |
+
+Context Object Details
+1. github Context
+${{ github.repository }}
+${{ github.actor }}
+${{ github.event_name }}
+${{ github.ref }}
+${{ github.sha }}
+Contains event & repo details: who triggered, which branch, event type, etc.
+
+2. env Context
+env:
+  NODE_ENV: production
+Access with ${{ env.NODE_ENV }}
+
+3. secrets Context
+secrets:
+  MY_SECRET: ${{ secrets.MY_SECRET }}
+Store credentials securely.
+
+4. runner Context
+${{ runner.os }}         # 'Linux', 'Windows', or 'macOS'
+${{ runner.arch }}       # 'X64'
+${{ runner.name }}       # Runner name
+
+5. matrix Context
+Used in matrix jobs to get current values:
+${{ matrix.os }}         # e.g., 'ubuntu-latest'
+
+6. strategy Context
+Access matrix strategy info:
+${{ strategy.job-index }}   # Index of the current matrix job
+
+7. needs Context
+Used to get outputs from previous jobs:
+${{ needs.build.outputs.version }}
+
+8. steps Context
+Access outputs from previous steps (by id):
+${{ steps.step_id.outputs.some_output }}
+
+9. inputs Context
+Used with workflow_dispatch to get user inputs:
+${{ inputs.username }}
+
+10. vars Context
+Custom repository-level variables:
+${{ vars.ENVIRONMENT_NAME }}
+
+Built-in Functions (Contextual Helpers)
+| Function      | Purpose                                           |
+| ------------- | ------------------------------------------------- |
+| `success()`   | Returns `true` if all prior steps/jobs succeeded. |
+| `failure()`   | Returns `true` if a prior step/job failed.        |
+| `cancelled()` | True if the workflow was cancelled.               |
+| `always()`    | Always runs the step/job.                         |
+
+Summary Table:
+| Context   | Use Case                             | Example                              |
+| --------- | ------------------------------------ | ------------------------------------ |
+| `github`  | Repo & event metadata                | `${{ github.ref }}`                  |
+| `env`     | Workflow or job environment vars     | `${{ env.MY_VAR }}`                  |
+| `secrets` | Secure secret access                 | `${{ secrets.TOKEN }}`               |
+| `runner`  | Runner environment details           | `${{ runner.os }}`                   |
+| `matrix`  | Dynamic job configurations           | `${{ matrix.node }}`                 |
+| `needs`   | Get outputs from other jobs          | `${{ needs.build.outputs.version }}` |
+| `inputs`  | User inputs from `workflow_dispatch` | `${{ inputs.region }}`               |
+| `vars`    | Global/repo-level custom variables   | `${{ vars.API_URL }}`                |
+| `steps`   | Refer to step outputs in current job | `${{ steps.test.outputs.result }}`   |
+
+
+Official Docs:
+https://docs.github.com/en/actions/reference/contexts-reference#available-contexts
