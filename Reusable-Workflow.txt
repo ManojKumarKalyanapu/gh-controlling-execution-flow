@@ -1,0 +1,86 @@
+What is a Reusable Workflow?
+A reusable workflow is a workflow file that can be called by other workflows — either:
+In the same repository, or
+From a different repository
+
+Great for:
+DRY principles (Don’t Repeat Yourself)
+Shared CI/CD logic
+Deployment workflows
+Security scans
+Testing matrices
+
+File Structure
+Reusable workflows must be defined under:
+.github/workflows/reusable.yml
+
+How to Define a Reusable Workflow
+Use workflow_call as the trigger in the reusable workflow:
+# .github/workflows/reusable.yml
+name: Reusable Workflow
+
+on:
+  workflow_call:
+    inputs:
+      username:
+        required: true
+        type: string
+    secrets:
+      MY_SECRET:
+        required: true
+
+jobs:
+  echo-user:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello, ${{ inputs.username }}"
+      - run: echo "Secret: ${{ secrets.MY_SECRET }}"
+
+
+How to Call a Reusable Workflow
+From another workflow in the same or different repo:
+
+# .github/workflows/main.yml
+name: Caller Workflow
+
+on: [push]
+
+jobs:
+  use-reusable:
+    uses: ./.github/workflows/reusable.yml
+    with:
+      username: Manoj
+    secrets:
+      MY_SECRET: ${{ secrets.MY_SECRET }}
+
+
+Supported Inputs and Secrets
+inputs: Accepts strings, booleans, numbers
+
+secrets: Must be explicitly passed from caller workflow
+
+Reusable Workflow Limitations
+| Limitation                              | Description                                  |
+| --------------------------------------- | -------------------------------------------- |
+| Trigger only on `workflow_call`         | Can’t run standalone                         |
+| Cannot define matrix in called workflow | Must pass matrix from caller                 |
+| Secrets must be explicitly passed       | No auto-inheritance                          |
+| Limited to same repo or public repos    | Private cross-repo usage needs access rights |
+
+
+Best Practices
+| Tip                                          | Reason                                |
+| -------------------------------------------- | ------------------------------------- |
+| Keep it generic                              | Allows reuse across multiple projects |
+| Validate inputs                              | Prevents runtime errors               |
+| Version reusable workflows using tags or SHA | Ensures stable builds                 |
+| Combine with `strategy.matrix`               | For powerful CI workflows             |
+
+Summary
+| Feature         | Syntax / Example                                 |
+| --------------- | ------------------------------------------------ |
+| Define reusable | `on: workflow_call`                              |
+| Call local      | `uses: ./.github/workflows/file.yml`             |
+| Call remote     | `uses: org/repo/.github/workflows/file.yml@main` |
+| Pass inputs     | `with:` + `inputs:`                              |
+| Pass secrets    | `secrets:`                                       |
