@@ -1,0 +1,79 @@
+What Are Inputs in Reusable Workflows?
+Inputs are parameters you define in a reusable workflow so that the calling workflow can pass dynamic values to it.
+This makes the reusable workflow configurable and flexible, just like a function with arguments.
+
+Step 1: Define Inputs in the Reusable Workflow
+Use the inputs: block under on: workflow_call to define input parameters.
+# .github/workflows/reusable.yml
+
+name: Reusable Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: string
+      run-tests:
+        description: 'Run tests or not'
+        required: false
+        default: false
+        type: boolean
+| Field         | Description                               |
+| ------------- | ----------------------------------------- |
+| `description` | Describes what the input does             |
+| `required`    | Whether the input is required             |
+| `type`        | Input type: `string`, `boolean`, `number` |
+| `default`     | Default value (if not passed by caller)   |
+
+Step 2: Use Inputs in the Workflow
+Use ${{ inputs.<input_name> }} anywhere in jobs or steps.
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Deploying to ${{ inputs.environment }}"
+
+  test:
+    if: ${{ inputs.run-tests == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Running tests..."
+
+Step 3: Pass Inputs from the Calling Workflow
+# .github/workflows/caller.yml
+
+on: [push]
+
+jobs:
+  call-reusable:
+    uses: ./.github/workflows/reusable.yml
+    with:
+      environment: production
+      run-tests: true
+
+Input Type Options
+| Type      | Example Value    | Notes                      |
+| --------- | ---------------- | -------------------------- |
+| `string`  | `"dev"`          | Most common                |
+| `boolean` | `true` / `false` | Must be lowercase          |
+| `number`  | `10`             | Used rarely, but supported |
+
+
+Tips & Best Practices:
+| Tip                                       | Why                       |
+| ----------------------------------------- | ------------------------- |
+| Always provide `description`              | Improves maintainability  |
+| Use `default` when optional               | Prevents failures         |
+| Validate inputs in steps                  | Ensures expected behavior |
+| Keep input names lowercase and hyphenated | For consistency           |
+
+Summary:
+| Feature       | Usage                                |
+| ------------- | ------------------------------------ |
+| Define inputs | Under `on: workflow_call.inputs`     |
+| Use inputs    | `${{ inputs.name }}`                 |
+| Pass inputs   | In the `with:` section of caller job |
+| Input types   | `string`, `boolean`, `number`        |
