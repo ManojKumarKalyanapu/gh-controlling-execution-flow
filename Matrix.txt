@@ -1,0 +1,92 @@
+What Is a Matrix Strategy?
+A matrix strategy allows you to run a job multiple times with different combinations of inputs (e.g., Node.js versions, OS types, Python versions).
+It’s useful for:
+Cross-platform testing (Linux, Windows, macOS)
+Multi-version testing (Node.js 16, 18, 20)
+Parallel execution to save time
+
+Basic Syntax:
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [16, 18]
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+This creates 4 jobs:
+ubuntu-latest + node 16
+ubuntu-latest + node 18
+windows-latest + node 16
+windows-latest + node 18
+
+
+Matrix Context Variables:
+Inside matrix jobs, you can access values like:
+${{ matrix.os }}
+${{ matrix.node }}
+
+Include and Exclude Specific Combinations
+
+1.exclude: Skip certain combinations
+strategy:
+  matrix:
+    os: [ubuntu-latest, windows-latest]
+    node: [16, 18]
+    exclude:
+      - os: windows-latest
+        node: 16
+
+2.include: Add extra combinations
+strategy:
+  matrix:
+    os: [ubuntu-latest]
+    node: [16]
+    include:
+      - os: windows-latest
+        node: 18
+        extra: true
+
+Limiting Job Failures: fail-fast:
+strategy:
+  fail-fast: false
+Set fail-fast: false to prevent canceling all jobs if one fails.
+
+Real Use Case Example: Node.js Test Matrix:
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [14, 16, 18]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm install
+      - run: npm test
+
+Best Practices
+| Tip                                        | Why                                     |
+| ------------------------------------------ | --------------------------------------- |
+| Use only needed versions                   | Avoid long workflows with unused combos |
+| Use `exclude` for known conflicts          | Prevents unnecessary failures           |
+| Combine with `outputs` for dynamic results | Pass data from matrix jobs              |
+| Use `name:` with matrix variables          | Easier job labels in UI                 |
+
+name: Test on ${{ matrix.os }} with Node.js ${{ matrix.node }}
+
+Summary:
+| Feature        | Description                                      |
+| -------------- | ------------------------------------------------ |
+| `matrix:`      | Defines all variable combinations                |
+| `matrix.<var>` | Access value in steps                            |
+| `exclude:`     | Skips specific combinations                      |
+| `include:`     | Adds custom combinations or variables            |
+| `fail-fast:`   | Stops all jobs on first failure (default `true`) |
