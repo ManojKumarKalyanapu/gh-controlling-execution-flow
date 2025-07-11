@@ -1,0 +1,101 @@
+What is Conditional Execution?
+In GitHub Actions, you can control when a workflow, job, or step should run based on specific conditions, such as:
+
+1.Branch name
+2.Commit message
+3.Environment
+4.Previous job success
+5.Manual inputs
+
+1. Workflow-Level Conditions
+Not supported directly with if:
+Instead, use event filters like branches, tags, and paths:
+example:
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+Use case: Trigger only when pushing to main or updating certain files.
+
+2. Job-Level Conditions
+Use the if: key under a job to control whether the job runs or not.
+example:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - run: echo "Running tests on main branch"
+
+3. Step-Level Conditions
+You can apply if: at the step level too.
+example:
+steps:
+  - name: Run only if previous step succeeded
+    if: success()
+    run: echo "This runs if previous step was successful"
+
+  - name: Run only on pull requests
+    if: github.event_name == 'pull_request'
+    run: echo "This is a PR"
+
+
+Common Conditions & Expressions
+| Condition           | Description                               |
+| ------------------- | ----------------------------------------- |
+| `success()`         | True if all previous steps/jobs succeeded |
+| `failure()`         | True if any previous step/job failed      |
+| `always()`          | Always runs the step/job                  |
+| `cancelled()`       | True if workflow was cancelled            |
+| `github.ref`        | The branch or tag ref                     |
+| `github.event_name` | The event that triggered the workflow     |
+| `github.actor`      | The user who triggered the workflow       |
+| `contains()`        | Checks if a string contains a substring   |
+
+
+Example: Conditional Job Based on Input
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        type: boolean
+        default: false
+
+jobs:
+  deploy:
+    if: ${{ github.event.inputs.deploy == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Deploying app..."
+
+
+Job Dependency Condition (needs + if):
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Build complete"
+
+  deploy:
+    needs: build
+    if: success() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Deploying build"
+
+Best Practices:
+| Tip                                                  | Why it helps                                        |
+| ---------------------------------------------------- | --------------------------------------------------- |
+| Use `if:` at job level for skipping entire jobs      | Saves time and resources                            |
+| Use `success()` and `failure()` wisely               | Ensures logical flow                                |
+| Don't rely on just `branches` — use `github.ref` too | More flexible condition logic                       |
+| Test conditions with debug output                    | Use `echo` and `env` variables to debug expressions |
+
+Summary:
+| Level    | Conditional Support | Syntax             | Example               |
+| -------- | ------------------- | ------------------ | --------------------- |
+| Workflow | Event filters only  | `on.push.branches` | Run only on `main`    |
+| Job      | ✅ Yes               | `if: condition`    | Run only if `main`    |
+| Step     | ✅ Yes               | `if: condition`    | Run if PR, fail, etc. |
